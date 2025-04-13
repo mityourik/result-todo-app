@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import debounce from 'lodash.debounce';
+import { ref, onValue, push, remove, update } from 'firebase/database';
+import { db } from './firebase';
+import styles from './App.module.css';
 
 const API_URL = 'http://localhost:3001/todos';
 
@@ -7,82 +10,74 @@ function App() {
     const [todos, setTodos] = useState([]);
     const [newTodo, setNewTodo] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
-    const [sortAlpha, setSortAlpha] = useState(false);
+    const [sortAlphabet, setSortAlphabet] = useState(false);
+    const [loading, setLoading] = useState(true);
+
+    const todoDbRef = ref(db, 'todos');
 
     useEffect(() => {
-        fetchTodos();
+        return onValue(todoDbRef, (snapshot) => {
+            const data = snapshot.val();
+            const todoList = data
+                ? Object.entries(data).map(([id, todo]) => ({ id, ...todo }))
+                : [];
+            setTodos(todoList);
+            setLoading(false);
+        });
     }, []);
-
-    const fetchTodos = async () => {
-        try {
-            const response = await fetch(API_URL);
-            const data = await response.json();
-            setTodos(data);
-        } catch (error) {
-            console.error(error);
-        }
-    };
 
     const handleAddTodo = async () => {
         if (!newTodo.trim()) return;
         const todo = { text: newTodo.trim(), isCompleted: false };
         try {
-            const response = await fetch(API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(todo),
-            });
-            const savedTodo = await response.json();
-            setTodos((prev) => [...prev, savedTodo]);
+            await push(todoDbRef, todo);
             setNewTodo('');
         } catch (error) {
             console.error(error);
+        } finally {
+            setLoading(false);
         }
     };
 
     const handleDelete = async (id) => {
         try {
-            await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+            await remove(ref(db, `todos/${id}`));
             setTodos((prev) => prev.filter((todo) => todo.id !== id));
         } catch (error) {
             console.error(error);
+        } finally {
+            setLoading(false);
         }
     };
 
     const handleUpdate = async (id, updatedText) => {
         try {
-            const todo = todos.find((t) => t.id === id);
-            const response = await fetch(`${API_URL}/${id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    text: updatedText,
-                    isCompleted: todo.isCompleted,
-                }),
-            });
-            const updatedTodo = await response.json();
+            await update(ref(db, `todos/${id}`), { text: updatedText });
             setTodos((prev) =>
-                prev.map((todo) => (todo.id === id ? updatedTodo : todo))
+                prev.map((todo) =>
+                    todo.id === id ? { ...todo, text: updatedText } : todo
+                )
             );
         } catch (error) {
             console.error(error);
+        } finally {
+            setLoading(false);
         }
     };
 
     const handleToggle = async (todo) => {
-        const updatedTodo = { ...todo, isCompleted: !todo.isCompleted };
         try {
-            const response = await fetch(`${API_URL}/${todo.id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(updatedTodo),
+            const updatedTodo = { ...todo, isCompleted: !todo.isCompleted };
+            await update(ref(db, `todos/${todo.id}`), {
+                isCompleted: updatedTodo.isCompleted,
             });
-            const returnedTodo = await response.json();
             setTodos((prev) =>
-                prev.map((t) => (t.id === todo.id ? returnedTodo : t))
+                prev.map((t) => (t.id === todo.id ? updatedTodo : t))
             );
         } catch (error) {
             console.error(error);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -96,14 +91,22 @@ function App() {
         todo.text.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    const sortedTodos = sortAlpha
+    const sortedTodos = sortAlphabet
         ? [...filteredTodos].sort((a, b) => a.text.localeCompare(b.text))
         : filteredTodos;
 
+    if (loading) {
+        return (
+            <div className={styles.loaderContainer}>
+                <div className={styles.todos__loading__spinner} />
+            </div>
+        );
+    }
+
     return (
-        <div style={{ padding: '20px', fontFamily: 'sans-serif' }}>
-            <h1>Todo List</h1>
-            <div style={{ marginBottom: '10px' }}>
+        <div className={styles.todos}>
+            <h1 className={styles.todos__title}>Todo List</h1>
+            <div className={styles.todos__add}>
                 <input
                     type="text"
                     placeholder="Добавить дело"
@@ -112,41 +115,37 @@ function App() {
                 />
                 <button onClick={handleAddTodo}>Добавить</button>
             </div>
-            <div style={{ marginBottom: '15px' }}>
+            <div className={styles.todos__controls}>
                 <input
                     type="text"
                     placeholder="Поиск дел..."
                     onChange={handleSearchChange}
+                    className={styles.todos__search}
                 />
-                <button onClick={() => setSortAlpha((prev) => !prev)}>
-                    {sortAlpha
+                <button
+                    onClick={() => setSortAlphabet((prev) => !prev)}
+                    className={styles.todos__sortButton}
+                >
+                    {sortAlphabet
                         ? 'Исходная сортировка'
                         : 'Сортировать по алфавиту'}
                 </button>
             </div>
-            <ul style={{ listStyle: 'none', padding: 0 }}>
+            <ul className={styles.todos__list}>
                 {sortedTodos.map((todo) => (
-                    <li
-                        key={todo.id}
-                        style={{
-                            marginBottom: '10px',
-                            padding: '5px',
-                            borderBottom: '1px solid #ccc',
-                            display: 'flex',
-                            alignItems: 'center',
-                        }}
-                    >
+                    <li key={todo.id} className={styles.todos__item}>
                         <input
                             type="checkbox"
                             checked={todo.isCompleted}
                             onChange={() => handleToggle(todo)}
+                            className={styles.todos__itemCheckbox}
                         />
-                        <span style={{ marginLeft: '10px', flexGrow: 1 }}>
+                        <span className={styles.todos__itemText}>
                             {todo.text}
                         </span>
                         <button
                             onClick={() => handleDelete(todo.id)}
-                            style={{ marginLeft: '10px' }}
+                            className={styles.todos__itemDelete}
                         >
                             Удалить
                         </button>
@@ -158,7 +157,7 @@ function App() {
                                 );
                                 if (newText) handleUpdate(todo.id, newText);
                             }}
-                            style={{ marginLeft: '5px' }}
+                            className={styles.todos__itemEdit}
                         >
                             Редактировать
                         </button>

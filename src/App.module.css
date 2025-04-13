@@ -1,0 +1,198 @@
+.todos {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    max-width: 600px;
+    min-height: 400px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.todos__title {
+    text-align: center;
+    font-size: 24px;
+    text-transform: uppercase;
+    margin: 0 0 20px 0;
+    color: #333;
+    display: flex;
+}
+
+.todos__add {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.todos__add input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.todos__add button {
+    padding: 10px 15px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.todos__add button:hover {
+    background-color: #0056b3;
+}
+
+.todos__loading__spinner {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.todos__loading__spinner::after {
+    content: '';
+    width: 40px;
+    height: 40px;
+    border: 4px solid #ccc;
+    border-top-color: #007bff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.loaderContainer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #ffffff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.todos__list {
+    list-style: none;
+    padding: 0;
+}
+
+.todos__list li {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    padding: 10px;
+    border-bottom: 1px solid #ccc;
+}
+
+.todos__list li span {
+    flex-grow: 1;
+    margin-left: 10px;
+}
+
+.todos__list li button {
+    margin-left: 10px;
+    padding: 5px 10px;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.todos__list li button:hover {
+    background-color: #a71d2a;
+}
+
+.todos__controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.todos__search {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.todos__sortButton {
+    padding: 10px 15px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.todos__sortButton:hover {
+    background-color: #0056b3;
+}
+
+.todos__item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    padding: 10px;
+    border-bottom: 1px solid #ccc;
+}
+
+.todos__itemCheckbox {
+    flex-shrink: 0;
+}
+
+.todos__itemText {
+    flex-grow: 1;
+    margin-left: 10px;
+    color: #333;
+}
+
+.todos__itemDelete,
+.todos__itemEdit {
+    margin-left: 10px;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.todos__itemDelete {
+    background-color: #dc3545;
+    color: white;
+}
+
+.todos__itemDelete:hover {
+    background-color: #a71d2a;
+}
+
+.todos__itemEdit {
+    background-color: #28a745;
+    color: white;
+}
+
+.todos__itemEdit:hover {
+    background-color: #1e7e34;
+}
