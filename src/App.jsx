@@ -1,85 +1,23 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import debounce from 'lodash.debounce';
-import { ref, onValue, push, remove, update } from 'firebase/database';
-import { db } from './firebase';
 import styles from './App.module.css';
-
-const API_URL = 'http://localhost:3001/todos';
+import { useFetchTodos } from './hooks/useFetchTodos';
+import { useAddTodo } from './hooks/useAddTodo';
+import { useDeleteTodo } from './hooks/useDeleteTodo';
+import { useUpdateTodo } from './hooks/useUpdateTodo';
+import { useToggleTodo } from './hooks/useToggleTodo';
+import Preloader from './components/Preloader';
 
 function App() {
-    const [todos, setTodos] = useState([]);
     const [newTodo, setNewTodo] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
     const [sortAlphabet, setSortAlphabet] = useState(false);
-    const [loading, setLoading] = useState(true);
 
-    const todoDbRef = ref(db, 'todos');
-
-    useEffect(() => {
-        return onValue(todoDbRef, (snapshot) => {
-            const data = snapshot.val();
-            const todoList = data
-                ? Object.entries(data).map(([id, todo]) => ({ id, ...todo }))
-                : [];
-            setTodos(todoList);
-            setLoading(false);
-        });
-    }, []);
-
-    const handleAddTodo = async () => {
-        if (!newTodo.trim()) return;
-        const todo = { text: newTodo.trim(), isCompleted: false };
-        try {
-            await push(todoDbRef, todo);
-            setNewTodo('');
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleDelete = async (id) => {
-        try {
-            await remove(ref(db, `todos/${id}`));
-            setTodos((prev) => prev.filter((todo) => todo.id !== id));
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleUpdate = async (id, updatedText) => {
-        try {
-            await update(ref(db, `todos/${id}`), { text: updatedText });
-            setTodos((prev) =>
-                prev.map((todo) =>
-                    todo.id === id ? { ...todo, text: updatedText } : todo
-                )
-            );
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleToggle = async (todo) => {
-        try {
-            const updatedTodo = { ...todo, isCompleted: !todo.isCompleted };
-            await update(ref(db, `todos/${todo.id}`), {
-                isCompleted: updatedTodo.isCompleted,
-            });
-            setTodos((prev) =>
-                prev.map((t) => (t.id === todo.id ? updatedTodo : t))
-            );
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setLoading(false);
-        }
-    };
+    const { todos, loading } = useFetchTodos(sortAlphabet);
+    const { addTodo } = useAddTodo();
+    const { deleteTodo } = useDeleteTodo();
+    const { updateTodo } = useUpdateTodo();
+    const { toggleTodo } = useToggleTodo();
 
     const debouncedSearch = debounce((query) => setSearchTerm(query), 300);
 
@@ -91,16 +29,8 @@ function App() {
         todo.text.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    const sortedTodos = sortAlphabet
-        ? [...filteredTodos].sort((a, b) => a.text.localeCompare(b.text))
-        : filteredTodos;
-
     if (loading) {
-        return (
-            <div className={styles.loaderContainer}>
-                <div className={styles.todos__loading__spinner} />
-            </div>
-        );
+        return <Preloader />;
     }
 
     return (
@@ -113,7 +43,14 @@ function App() {
                     value={newTodo}
                     onChange={(e) => setNewTodo(e.target.value)}
                 />
-                <button onClick={handleAddTodo}>Добавить</button>
+                <button
+                    onClick={() => {
+                        addTodo(newTodo);
+                        setNewTodo('');
+                    }}
+                >
+                    Добавить
+                </button>
             </div>
             <div className={styles.todos__controls}>
                 <input
@@ -124,7 +61,7 @@ function App() {
                 />
                 <button
                     onClick={() => setSortAlphabet((prev) => !prev)}
-                    className={styles.todos__sortButton}
+                    className={styles['todos__sort-button']}
                 >
                     {sortAlphabet
                         ? 'Исходная сортировка'
@@ -132,20 +69,20 @@ function App() {
                 </button>
             </div>
             <ul className={styles.todos__list}>
-                {sortedTodos.map((todo) => (
+                {filteredTodos.map((todo) => (
                     <li key={todo.id} className={styles.todos__item}>
                         <input
                             type="checkbox"
                             checked={todo.isCompleted}
-                            onChange={() => handleToggle(todo)}
-                            className={styles.todos__itemCheckbox}
+                            onChange={() => toggleTodo(todo)}
+                            className={styles['todos__item-checkbox']}
                         />
-                        <span className={styles.todos__itemText}>
+                        <span className={styles['todos__item-text']}>
                             {todo.text}
                         </span>
                         <button
-                            onClick={() => handleDelete(todo.id)}
-                            className={styles.todos__itemDelete}
+                            onClick={() => deleteTodo(todo.id)}
+                            className={styles['todos__item-delete']}
                         >
                             Удалить
                         </button>
@@ -155,7 +92,7 @@ function App() {
                                     'Новое название дела',
                                     todo.text
                                 );
-                                if (newText) handleUpdate(todo.id, newText);
+                                if (newText) updateTodo(todo.id, newText);
                             }}
                             className={styles.todos__itemEdit}
                         >
