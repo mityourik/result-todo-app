@@ -1,0 +1,112 @@
+.task-detail {
+    width: 700px;
+    margin: 40px auto;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    font-family: Arial, sans-serif;
+}
+
+.task-detail__not-found {
+    text-align: center;
+    font-size: 18px;
+    color: #666;
+}
+
+.task-detail__back-button {
+    background: none;
+    border: none;
+    font-size: 16px;
+    color: #007bff;
+    cursor: pointer;
+    margin-bottom: 20px;
+}
+
+.task-detail__back-button:hover {
+    text-decoration: none;
+}
+
+.task-detail__title {
+    font-size: 24px;
+    margin-bottom: 20px;
+    text-align: center;
+    color: #333;
+}
+
+.task-detail__content {
+    margin-bottom: 20px;
+}
+
+.task-detail__text {
+    font-size: 18px;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.task-detail__checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 16px;
+    color: #333;
+}
+
+.task-detail__checkbox {
+    transform: scale(1.2);
+    cursor: pointer;
+}
+
+.task-detail__actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.task-detail__input {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.task-detail__update-button,
+.task-detail__delete-button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    color: white;
+}
+
+.task-detail__update-button {
+    background-color: #28a745;
+}
+
+.task-detail__update-button:hover {
+    background-color: #218838;
+}
+
+.task-detail__delete-button {
+    background-color: #dc3545;
+}
+
+.task-detail__delete-button:hover {
+    background-color: #c82333;
+}
+
+.task-detail__textarea {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+    width: 100%;
+    box-sizing: border-box;
+    /* resize: none; */
+    overflow: hidden;
+    min-height: 40px;
+    line-height: 1.5;
+}
