@@ -1,71 +1,30 @@
 import debounce from 'lodash.debounce';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { TodoContext } from '../../contexts/TodoContext';
 import styles from './Home.module.css';
-import Preloader from '../../components/Preloader/Preloader';
-
-const API_URL = 'http://localhost:3001/tasks';
 
 function Home() {
-    const [tasks, setTasks] = useState([]);
+    const { todos, handleAddTodo } = useContext(TodoContext);
     const [newTaskText, setNewTaskText] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
     const [sortAlphabet, setSortAlphabet] = useState(false);
-    const [loading, setLoading] = useState(true);
-
-    const fetchTasks = useCallback(() => {
-        setLoading(true);
-        let url = API_URL;
-        if (sortAlphabet) {
-            url += '?_sort=text&_order=asc';
-        }
-        fetch(url)
-            .then((res) => res.json())
-            .then((data) => {
-                const tasksArray = Array.isArray(data)
-                    ? data
-                    : Object.values(data);
-                setTasks(tasksArray);
-                setLoading(false);
-            })
-            .catch((err) => {
-                console.error(err);
-                setLoading(false);
-            });
-    }, [sortAlphabet]);
-
-    useEffect(() => {
-        fetchTasks();
-    }, [fetchTasks]);
-
-    const handleAddTask = () => {
-        if (!newTaskText.trim()) return;
-        const newTask = { text: newTaskText.trim() };
-        fetch(API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(newTask),
-        })
-            .then((res) => res.json())
-            .then(() => {
-                setNewTaskText('');
-                fetchTasks();
-            })
-            .catch((err) => console.error(err));
-    };
 
     const debouncedSearch = debounce((query) => setSearchTerm(query), 300);
     const handleSearchChange = (e) => {
         debouncedSearch(e.target.value);
     };
 
-    const filteredTasks = tasks.filter((task) =>
-        task.text.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
-    if (loading) {
-        return <Preloader />;
-    }
+    const filteredTasks = todos
+        .filter((task) =>
+            task.text.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+        .sort((a, b) => {
+            if (sortAlphabet) {
+                return a.text.localeCompare(b.text);
+            }
+            return 0;
+        });
 
     return (
         <div className={styles.todos}>
@@ -77,7 +36,14 @@ function Home() {
                     value={newTaskText || ''}
                     onChange={(e) => setNewTaskText(e.target.value)}
                 />
-                <button onClick={handleAddTask}>Add</button>
+                <button
+                    onClick={() => {
+                        handleAddTodo(newTaskText);
+                        setNewTaskText('');
+                    }}
+                >
+                    Add
+                </button>
             </div>
             <div className={styles.todos__controls}>
                 <input
@@ -103,7 +69,14 @@ function Home() {
                             to={`/task/${task.id}`}
                             className={styles.todos__item}
                         >
-                            {task.text}
+                            <span className={styles['todos__item-text']}>
+                                {task.text}
+                            </span>
+                            {task.isCompleted && (
+                                <span className={styles['todos__item-check']}>
+                                    ✓
+                                </span>
+                            )}
                         </Link>
                     </li>
                 ))}

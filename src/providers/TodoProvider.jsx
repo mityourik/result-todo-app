@@ -1,13 +1,12 @@
-import React, { createContext, useEffect, useState } from 'react';
-import useAddTodo from '../hooks/useAddTodo';
-import useDeleteTodo from '../hooks/useDeleteTodo';
-import useFetchTodos from '../hooks/useFetchTodos';
-import useToggleTodo from '../hooks/useToggleTodo';
-import useUpdateTodo from '../hooks/useUpdateTodo';
+import React, { useEffect, useState } from 'react';
+import { TodoContext } from '../contexts/TodoContext';
+import { useAddTodo } from '../hooks/useAddTodo';
+import { useDeleteTodo } from '../hooks/useDeleteTodo';
+import { useFetchTodos } from '../hooks/useFetchTodos';
+import { useToggleTodo } from '../hooks/useToggleTodo';
+import { useUpdateTodo } from '../hooks/useUpdateTodo';
 
-export const TodosContext = createContext(null);
-
-export const TodosProvider = ({ children }) => {
+export const TodoProvider = ({ children }) => {
     const [todos, setTodos] = useState([]);
 
     const { fetchTodos } = useFetchTodos();
@@ -20,9 +19,12 @@ export const TodosProvider = ({ children }) => {
         fetchTodos().then(setTodos);
     }, [fetchTodos]);
 
-    const handleAddTodo = async (newTodo) => {
-        const addedTodo = await addTodo(newTodo);
-        setTodos((prev) => [...prev, addedTodo]);
+    const handleAddTodo = async (newTaskText) => {
+        if (!newTaskText) return;
+        const addedTodo = await addTodo(newTaskText);
+        if (addedTodo) {
+            setTodos((prev) => [...prev, addedTodo]);
+        }
     };
 
     const handleDeleteTodo = async (id) => {
@@ -32,16 +34,21 @@ export const TodosProvider = ({ children }) => {
 
     const handleToggleTodo = async (id) => {
         const updatedTodo = await toggleTodo(id);
-        setTodos((prev) => prev.map((todo) => (todo.id === id ? updatedTodo : todo)));
+        setTodos((prev) =>
+            prev.map((todo) => (todo.id === id ? updatedTodo : todo))
+        );
+        return updatedTodo;
     };
 
     const handleUpdateTodo = async (id, updatedData) => {
         const updatedTodo = await updateTodo(id, updatedData);
-        setTodos((prev) => prev.map((todo) => (todo.id === id ? updatedTodo : todo)));
+        setTodos((prev) =>
+            prev.map((todo) => (todo.id === id ? updatedTodo : todo))
+        );
     };
 
     return (
-        <TodosContext.Provider
+        <TodoContext.Provider
             value={{
                 todos,
                 handleAddTodo,
@@ -51,6 +58,6 @@ export const TodosProvider = ({ children }) => {
             }}
         >
             {children}
-        </TodosContext.Provider>
+        </TodoContext.Provider>
     );
 };

@@ -70,14 +70,26 @@
 }
 
 .todos__item {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   padding: 10px;
   border-bottom: 1px solid #ccc;
   text-decoration: none;
   color: #333;
+}
+
+.todos__item-text {
+  flex: 1;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.todos__item-check {
+  color: #2ecc71;
+  margin-left: 10px;
+  font-size: 18px;
 }
 
 .todos__item:hover {

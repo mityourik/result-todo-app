@@ -1,13 +1,13 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.jsx';
-import { TodosProvider } from './contexts/todosContext';
 import './index.css';
+import { TodoProvider } from './providers/TodoProvider';
 
 createRoot(document.getElementById('root')).render(
     <StrictMode>
-        <TodosProvider>
+        <TodoProvider>
             <App />
-        </TodosProvider>
+        </TodoProvider>
     </StrictMode>
 );
