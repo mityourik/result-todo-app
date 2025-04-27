@@ -1,13 +1,13 @@
-import { ref, update } from 'firebase/database';
-import { db } from '../firebase';
+import { fetchFromServer } from '../utils/api';
 
 export function useUpdateTodo() {
-    async function updateTodo(id, updatedText) {
-        try {
-            await update(ref(db, `todos/${id}`), { text: updatedText });
-        } catch (error) {
-            console.error(error);
-        }
+    async function updateTodo(id, updatedData) {
+        return await fetchFromServer(`/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updatedData),
+        });
     }
+
     return { updateTodo };
 }

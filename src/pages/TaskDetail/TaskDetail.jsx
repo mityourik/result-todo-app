@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import Preloader from '../../components/Preloader/Preloader';
 import styles from './TaskDetail.module.css';
-import Preloader from '../../components/Preloader';
 
 const API_URL = 'http://localhost:3001/tasks';
 

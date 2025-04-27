@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
 import debounce from 'lodash.debounce';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import styles from './Home.module.css';
-import Preloader from '../../components/Preloader';
+import Preloader from '../../components/Preloader/Preloader';
 
 const API_URL = 'http://localhost:3001/tasks';
 
@@ -74,7 +74,7 @@ function Home() {
                 <input
                     type="text"
                     placeholder="Добавить задачу..."
-                    value={newTaskText}
+                    value={newTaskText || ''}
                     onChange={(e) => setNewTaskText(e.target.value)}
                 />
                 <button onClick={handleAddTask}>Add</button>
@@ -83,6 +83,7 @@ function Home() {
                 <input
                     type="text"
                     placeholder="Найти задачу..."
+                    value={searchTerm || ''}
                     onChange={handleSearchChange}
                     className={styles.todos__search}
                 />

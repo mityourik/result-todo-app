@@ -1,17 +1,14 @@
-import { push, ref } from 'firebase/database';
-import { db } from '../firebase';
+import { fetchFromServer } from '../utils/api';
 
 export function useAddTodo() {
-    const todoDbRef = ref(db, 'todos');
-
     async function addTodo(newTodoText) {
         if (!newTodoText.trim()) return;
         const todo = { text: newTodoText.trim(), isCompleted: false };
-        try {
-            await push(todoDbRef, todo);
-        } catch (error) {
-            console.error(error);
-        }
+        return await fetchFromServer('', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(todo),
+        });
     }
 
     return { addTodo };
