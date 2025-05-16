@@ -1,11 +1,20 @@
 import debounce from 'lodash.debounce';
-import React, { useContext, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
-import { TodoContext } from '../../contexts/TodoContext';
+import { addTodo, fetchTodos } from '../../store/slices/todosSlice';
 import styles from './Home.module.css';
 
 function Home() {
-    const { todos, handleAddTodo } = useContext(TodoContext);
+    const dispatch = useDispatch();
+    const todos = useSelector((state) => state.todos.items);
+    const status = useSelector((state) => state.todos.status);
+
+    useEffect(() => {
+        if (status === 'idle') {
+            dispatch(fetchTodos());
+        }
+    }, [dispatch, status]);
     const [newTaskText, setNewTaskText] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
     const [sortAlphabet, setSortAlphabet] = useState(false);
@@ -38,8 +47,12 @@ function Home() {
                 />
                 <button
                     onClick={() => {
-                        handleAddTodo(newTaskText);
-                        setNewTaskText('');
+                        if (newTaskText.trim()) {
+                            dispatch(
+                                addTodo({ text: newTaskText, completed: false })
+                            );
+                            setNewTaskText('');
+                        }
                     }}
                 >
                     Add

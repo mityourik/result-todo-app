@@ -1,56 +1,66 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
 import Preloader from '../../components/Preloader/Preloader';
-import { TodoContext } from '../../contexts/TodoContext';
-import { useGetTodoById } from '../../hooks/useGetTodoById';
+import {
+    deleteTodo,
+    getTodoById,
+    updateTodo,
+} from '../../store/slices/todosSlice';
 import styles from './TaskDetail.module.css';
 
 function TaskDetail() {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { handleToggleTodo, handleDeleteTodo, handleUpdateTodo } =
-        useContext(TodoContext);
-    const { getTodoById } = useGetTodoById();
-    const [task, setTask] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const dispatch = useDispatch();
+
+    const todo = useSelector((state) => state.todos.currentTodo);
+    const status = useSelector((state) => state.todos.status);
     const [editText, setEditText] = useState('');
 
     useEffect(() => {
-        setLoading(true);
-        getTodoById(Number(id)).then((currentTask) => {
-            if (currentTask) {
-                setTask(currentTask);
-                setEditText(currentTask.text);
-            } else {
-                navigate('/404');
-            }
-            setLoading(false);
-        });
-    }, [id, getTodoById, navigate]);
+        dispatch(getTodoById(Number(id)));
+    }, [dispatch, id]);
 
-    const handleToggle = async () => {
-        const updatedTask = await handleToggleTodo(task.id);
-        if (updatedTask) {
-            setTask(updatedTask);
+    useEffect(() => {
+        if (todo) {
+            setEditText(todo.text);
+        }
+    }, [todo]);
+
+    const handleToggle = () => {
+        if (todo) {
+            dispatch(
+                updateTodo({
+                    id: todo.id,
+                    updates: { isCompleted: !todo.isCompleted },
+                })
+            );
         }
     };
 
     const handleUpdate = () => {
-        if (!editText.trim()) return;
-        handleUpdateTodo(task.id, { text: editText.trim() });
-        setTask({ ...task, text: editText.trim() });
+        if (!editText.trim() || !todo) return;
+        dispatch(
+            updateTodo({
+                id: todo.id,
+                updates: { text: editText.trim() },
+            })
+        );
     };
 
     const handleDelete = () => {
-        handleDeleteTodo(task.id);
-        navigate('/');
+        if (todo) {
+            dispatch(deleteTodo(todo.id));
+            navigate('/');
+        }
     };
 
-    if (loading) {
+    if (status === 'loading') {
         return <Preloader />;
     }
 
-    if (!task) {
+    if (!todo) {
         return null;
     }
 
@@ -64,11 +74,11 @@ function TaskDetail() {
             </button>
             <h2 className={styles['task-detail__title']}>Задача</h2>
             <div className={styles['task-detail__content']}>
-                <p className={styles['task-detail__text']}>{task.text}</p>
+                <p className={styles['task-detail__text']}>{todo.text}</p>
                 <label className={styles['task-detail__checkbox-label']}>
                     <input
                         type="checkbox"
-                        checked={task.isCompleted || false}
+                        checked={todo.isCompleted || false}
                         onChange={handleToggle}
                         className={styles['task-detail__checkbox']}
                     />
